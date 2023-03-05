@@ -11,6 +11,7 @@ pub enum SubCommand {
     Start(StartCommand),
     Stop(StopCommand),
     Show(ShowCommand),
+    Watch(WatchCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -32,4 +33,13 @@ pub struct StopCommand {
 pub struct ShowCommand {
     #[arg(short, long)]
     pub project: String,
+}
+
+#[derive(Parser, Debug)]
+#[command(about = "Track time by watching directory changes")]
+pub struct WatchCommand {
+    #[arg(short, long)]
+    pub project: String,
+    #[arg(long)]
+    pub path: String,
 }

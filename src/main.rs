@@ -19,5 +19,9 @@ fn main() {
         SubCommand::Show(param) => {
             println!("Project: {}", param.project);
         }
+        SubCommand::Watch(param) => {
+            println!("Project: {}", param.project);
+            println!("Path: {}", param.path);
+        }
     }
 }
