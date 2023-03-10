@@ -1,32 +1,34 @@
 use clap::Parser;
 
-use crate::cli::{Opts, SubCommand};
-use crate::database::{create_record_table, get_connection, insert_record, read_project_records};
-use crate::record::Record;
+use crate::commands::{Opts, SubCommand};
+use crate::commands::SubCommand::Show;
+use crate::database::{create_record_table, get_connection};
 
-mod cli;
+mod commands;
 mod record;
 mod database;
+mod utils;
 
 fn main() {
     let connection = get_connection();
     create_record_table(&connection);
 
     match Opts::parse().sub_cmd {
-        SubCommand::Start(param) => {
-            let record = Record::start(param.project);
-            insert_record(&connection, record);
+        SubCommand::Start(command) => {
+            command.invoke(&connection)
         }
-        SubCommand::Stop(param) => {
-            let record = Record::start(param.project);
-            insert_record(&connection, record);
+        SubCommand::Stop(command) => {
+            command.invoke(&connection)
         }
-        SubCommand::Show(param) => {
-            println!("{:?}", read_project_records(&connection, param.project));
+        Show(param) => {
+            param.invoke(&connection);
         }
-        SubCommand::Watch(param) => {
-            println!("Project: {}", param.project);
-            println!("Path: {}", param.path);
+        SubCommand::Watch(command) => {
+            println!("Project: {}", command.project);
+            println!("Path: {}", command.path);
+        }
+        SubCommand::Projects(command) => {
+            command.invoke(&connection);
         }
     }
 }

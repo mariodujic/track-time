@@ -5,7 +5,7 @@ pub struct Record {
     pub id: String,
     pub project: String,
     pub is_start: bool,
-    pub time_at: String,
+    pub time_at: i64,
 }
 
 impl Record {
@@ -14,7 +14,7 @@ impl Record {
             id: Uuid::new_v4().to_string(),
             project,
             is_start: true,
-            time_at: chrono::offset::Utc::now().to_string(),
+            time_at: chrono::offset::Utc::now().timestamp_millis(),
         };
     }
     pub fn stop(project: String) -> Record {
@@ -22,7 +22,7 @@ impl Record {
             id: Uuid::new_v4().to_string(),
             project,
             is_start: false,
-            time_at: chrono::offset::Utc::now().to_string(),
+            time_at: chrono::offset::Utc::now().timestamp_millis(),
         };
     }
 }

@@ -10,7 +10,7 @@ pub fn get_connection() -> Connection {
 }
 
 pub fn create_record_table(connection: &Connection) {
-    let query = "CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, project TEXT, is_start INTEGER, time_at TEXT);";
+    let query = "CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, project TEXT, is_start INTEGER, time_at INTEGER);";
     connection.execute(query, ()).unwrap();
 }
 
@@ -22,19 +22,10 @@ pub fn insert_record(connection: &Connection, record: Record) {
     ).unwrap();
 }
 
-pub fn read_project_records(connection: &Connection, project: String) -> Vec<Record> {
-    let mut statement = connection
-        .prepare("SELECT id, project, is_start, time_at FROM records WHERE project = :project")
-        .unwrap();
-    let record_iter = statement.query_map(&[(":project", &project)], |row| {
-        row_to_record(row)
-    }).unwrap();
-
-    let mut records = vec![];
-    for record in record_iter {
-        records.push(record.unwrap());
-    }
-    return records;
+pub fn read_project_records(connection: &Connection, project: String) -> Result<Vec<Record>, Error> {
+    let mut statement = connection.prepare("SELECT id, project, is_start, time_at FROM records WHERE project = :project ORDER BY time_at ASC")?;
+    let result = statement.query_map(&[(":project", &project)], |row| { row_to_record(row) })?;
+    result.collect()
 }
 
 fn row_to_record(row: &Row) -> Result<Record, Error> {
@@ -44,4 +35,10 @@ fn row_to_record(row: &Row) -> Result<Record, Error> {
         is_start: row.get(2)?,
         time_at: row.get(3)?,
     })
+}
+
+pub fn read_projects(connection: &Connection) -> Result<Vec<String>, Error> {
+    let mut statement = connection.prepare("SELECT DISTINCT project FROM records")?;
+    let result = statement.query_map([], |row| row.get(0))?;
+    result.collect()
 }
