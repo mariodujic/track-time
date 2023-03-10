@@ -1,7 +1,6 @@
-use clap::Parser;
+use clap::{Parser};
 
 use crate::commands::{Opts, SubCommand};
-use crate::commands::SubCommand::Show;
 use crate::database::{create_record_table, get_connection};
 
 mod commands;
@@ -20,7 +19,7 @@ fn main() {
         SubCommand::Stop(command) => {
             command.invoke(&connection)
         }
-        Show(param) => {
+        SubCommand::Show(param) => {
             param.invoke(&connection);
         }
         SubCommand::Watch(command) => {
@@ -29,6 +28,9 @@ fn main() {
         }
         SubCommand::Projects(command) => {
             command.invoke(&connection);
+        }
+        SubCommand::Delete(command) => {
+            command.invoke(&connection)
         }
     }
 }

@@ -22,6 +22,13 @@ pub fn insert_record(connection: &Connection, record: Record) {
     ).unwrap();
 }
 
+pub fn delete_project(connection: &Connection, project: String) {
+    connection.execute(
+        "DELETE FROM records WHERE project = ?",
+        [project],
+    ).unwrap();
+}
+
 pub fn read_project_records(connection: &Connection, project: String) -> Result<Vec<Record>, Error> {
     let mut statement = connection.prepare("SELECT id, project, is_start, time_at FROM records WHERE project = :project ORDER BY time_at ASC")?;
     let result = statement.query_map(&[(":project", &project)], |row| { row_to_record(row) })?;

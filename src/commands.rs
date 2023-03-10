@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use clap::Parser;
 use rusqlite::Connection;
 
-use crate::database::{insert_record, read_project_records, read_projects};
+use crate::database::{delete_project, insert_record, read_project_records, read_projects};
 use crate::record::Record;
 use crate::utils::{date_time_to_display_date, timestamp_to_date_time_utc};
 
@@ -24,6 +24,8 @@ pub enum SubCommand {
     Watch(WatchCommand),
     #[command(about = "List all projects.")]
     Projects(ProjectsCommand),
+    #[command(about = "Delete project.")]
+    Delete(DeleteCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -111,5 +113,18 @@ impl ProjectsCommand {
         for (index, project) in projects.into_iter().enumerate() {
             println!("{:?}.{:<3}{:<3}", index + 1, "", project);
         }
+    }
+}
+
+#[derive(Parser, Debug)]
+pub struct DeleteCommand {
+    #[arg(short, long)]
+    pub project: String,
+}
+
+impl DeleteCommand {
+    pub fn invoke(self, connection: &Connection) {
+        delete_project(connection, self.project);
+        println!("Deleted project");
     }
 }
