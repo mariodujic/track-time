@@ -2,7 +2,7 @@ use std::fs::create_dir_all;
 
 use rusqlite::{Connection, Error, Row};
 
-use crate::record::Record;
+use crate::tracking_entry::TrackingEntry;
 
 pub fn get_connection() -> Connection {
     create_dir_all("database").unwrap();
@@ -14,8 +14,8 @@ pub fn create_record_table(connection: &Connection) {
     connection.execute(query, ()).unwrap();
 }
 
-pub fn insert_record(connection: &Connection, record: Record) {
-    let Record { id, project, is_start, time_at } = record;
+pub fn insert_record(connection: &Connection, record: TrackingEntry) {
+    let TrackingEntry { id, project, is_start, time_at } = record;
     connection.execute(
         "INSERT INTO records (id, project, is_start, time_at) VALUES (?1, ?2, ?3, ?4)",
         (&id, &project, is_start, time_at),
@@ -29,14 +29,14 @@ pub fn delete_project(connection: &Connection, project: String) {
     ).unwrap();
 }
 
-pub fn read_project_records(connection: &Connection, project: String) -> Result<Vec<Record>, Error> {
+pub fn read_project_records(connection: &Connection, project: String) -> Result<Vec<TrackingEntry>, Error> {
     let mut statement = connection.prepare("SELECT id, project, is_start, time_at FROM records WHERE project = :project ORDER BY time_at ASC")?;
     let result = statement.query_map(&[(":project", &project)], |row| { row_to_record(row) })?;
     result.collect()
 }
 
-fn row_to_record(row: &Row) -> Result<Record, Error> {
-    Ok(Record {
+fn row_to_record(row: &Row) -> Result<TrackingEntry, Error> {
+    Ok(TrackingEntry {
         id: row.get(0)?,
         project: row.get(1)?,
         is_start: row.get(2)?,

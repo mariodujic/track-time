@@ -10,7 +10,7 @@ use rusqlite::Connection;
 
 use crate::config::get_config;
 use crate::database::{delete_project, insert_record, read_project_records, read_projects};
-use crate::record::Record;
+use crate::tracking_entry::TrackingEntry;
 use crate::utils::{date_time_to_display_date, is_seconds_passed, now_timestamp_ms, timestamp_to_date_time_utc};
 
 #[derive(Parser)]
@@ -31,8 +31,8 @@ pub enum Command {
     Watch(WatchCommand),
     #[command(about = "List all projects.")]
     Projects(ProjectsCommand),
-    #[command(about = "Delete project.")]
-    Delete(DeleteCommand),
+    #[command(about = "Deletes project.")]
+    DeleteProject(DeleteCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -43,7 +43,7 @@ pub struct StartCommand {
 
 impl StartCommand {
     pub fn invoke(self, connection: &Connection) {
-        let record = Record::start(self.project);
+        let record = TrackingEntry::start(self.project);
         insert_record(&connection, record);
     }
 }
@@ -56,7 +56,7 @@ pub struct StopCommand {
 
 impl StopCommand {
     pub fn invoke(self, connection: &Connection) {
-        let record = Record::stop(self.project);
+        let record = TrackingEntry::stop(self.project);
         insert_record(&connection, record);
     }
 }
@@ -69,7 +69,15 @@ pub struct ShowCommand {
 
 impl ShowCommand {
     pub fn invoke(self, connection: &Connection) {
-        println!("{:18} {:18} {:12} {:5}", "Started (UTC)", "Stopped (UTC)", "Project", "Duration (min)");
+        println!("\nProject '{}'", self.project);
+        println!("------------------------------------------------------");
+        let config = get_config();
+        let time_unit = if config.time_unit == String::from("s") {
+            "sec"
+        } else {
+            "min"
+        };
+        println!("{:20} {:20} Duration ({})\n", "Started (UTC)", "Stopped (UTC)", time_unit);
         let records = read_project_records(&connection, self.project.clone()).unwrap();
         let mut total_duration_min = 0;
         let mut start_date: Option<DateTime<Utc>> = None;
@@ -84,21 +92,22 @@ impl ShowCommand {
                 }
             } else if start_date.is_some() {
                 let end_time_at = timestamp_to_date_time_utc(record.time_at);
-                let start_time_at_fmt = format!("{:18}", date_time_to_display_date(&start_date.unwrap()));
-                let end_time_at_fmt = format!("{:18}", date_time_to_display_date(&end_time_at));
-                let mut project_trunc = self.project.clone();
-                project_trunc.truncate(12);
-                let project_fmt = format!("{:12}", project_trunc);
+                let start_time_at_fmt = format!("{:20}", date_time_to_display_date(&start_date.unwrap()));
+                let end_time_at_fmt = format!("{:20}", date_time_to_display_date(&end_time_at));
                 let duration = end_time_at - start_date.unwrap();
-                let duration_min = duration.num_minutes();
-                let duration_fmt = format!("{:5}", duration_min);
-                println!("{} {} {} {}", start_time_at_fmt, end_time_at_fmt, project_fmt, duration_fmt);
+                let duration_in_units = if config.time_unit == String::from("s") {
+                    duration.num_seconds()
+                } else {
+                    duration.num_minutes()
+                };
+                let duration_fmt = format!("{}", duration_in_units);
+                println!("{} {} {}", start_time_at_fmt, end_time_at_fmt, duration_fmt);
                 start_date = None;
-                total_duration_min += duration_min;
+                total_duration_min += duration_in_units;
             }
         }
-        println!("------------------");
-        println!("Total: {} min", total_duration_min);
+        println!("------------------------------------------------------");
+        println!("Total: {} {}", total_duration_min, time_unit);
     }
 }
 
@@ -120,7 +129,7 @@ impl WatchCommand {
         ctrlc::set_handler(move || {
             running_clone.store(false, Ordering::SeqCst);
         }).expect("Error setting Ctrl-C handler");
-        // Flag that connects watcher thread and while loop in order to record new log.
+        // Flag which connects watcher thread and while loop in order to record new log.
         let start = Arc::new(AtomicBool::new(false));
         let start_clone = start.clone();
         let started_timestamp = Arc::new(AtomicI64::new(0));
@@ -145,7 +154,7 @@ impl WatchCommand {
                 if !working {
                     working = true;
                     println!("Activity detected..");
-                    let record = Record::start(self.project.clone());
+                    let record = TrackingEntry::start(self.project.clone());
                     insert_record(connection, record);
                 }
             }
@@ -155,13 +164,13 @@ impl WatchCommand {
                 start_clone.store(false, Ordering::SeqCst);
                 working = false;
                 println!("Paused (inactive)..");
-                let record = Record::stop(self.project.clone());
+                let record = TrackingEntry::stop(self.project.clone());
                 insert_record(connection, record);
             }
             thread::sleep(core::time::Duration::from_millis(500));
         }
         // Will run if user terminates a program with Ctrl+C.
-        let record = Record::stop(self.project);
+        let record = TrackingEntry::stop(self.project);
         insert_record(connection, record);
     }
 }
@@ -171,10 +180,10 @@ pub struct ProjectsCommand;
 
 impl ProjectsCommand {
     pub fn invoke(self, connection: &Connection) {
-        println!("{:<5}{:<3}", "", "Projects");
+        println!("\n{}\n", "Projects:");
         let projects = read_projects(&connection).unwrap();
         for (index, project) in projects.into_iter().enumerate() {
-            println!("{:?}.{:<3}{:<3}", index + 1, "", project);
+            println!("{:?}.{:<1}'{}'", index + 1, "", project);
         }
     }
 }
@@ -187,7 +196,7 @@ pub struct DeleteCommand {
 
 impl DeleteCommand {
     pub fn invoke(self, connection: &Connection) {
-        delete_project(connection, self.project);
-        println!("Deleted project");
+        delete_project(connection, self.project.clone());
+        println!("Deleted project '{}'", self.project);
     }
 }

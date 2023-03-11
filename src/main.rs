@@ -4,7 +4,7 @@ use crate::commands::{Opts, Command};
 use crate::database::{create_record_table, get_connection};
 
 mod commands;
-mod record;
+mod tracking_entry;
 mod database;
 mod utils;
 mod config;
@@ -29,7 +29,7 @@ fn main() {
         Command::Projects(command) => {
             command.invoke(&connection);
         }
-        Command::Delete(command) => {
+        Command::DeleteProject(command) => {
             command.invoke(&connection)
         }
     }
