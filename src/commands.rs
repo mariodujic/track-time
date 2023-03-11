@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::sync::{Arc};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 use std::thread;
 
@@ -8,6 +8,7 @@ use clap::Parser;
 use notify::{RecursiveMode, Watcher};
 use rusqlite::Connection;
 
+use crate::config::get_config;
 use crate::database::{delete_project, insert_record, read_project_records, read_projects};
 use crate::record::Record;
 use crate::utils::{date_time_to_display_date, is_seconds_passed, now_timestamp_ms, timestamp_to_date_time_utc};
@@ -15,11 +16,11 @@ use crate::utils::{date_time_to_display_date, is_seconds_passed, now_timestamp_m
 #[derive(Parser)]
 pub struct Opts {
     #[clap(subcommand)]
-    pub sub_cmd: SubCommand,
+    pub command: Command,
 }
 
 #[derive(Parser, Debug)]
-pub enum SubCommand {
+pub enum Command {
     #[command(about = "Starts tracking time for a unique project.")]
     Start(StartCommand),
     #[command(about = "Stops tracking time for a unique project.")]
@@ -149,7 +150,8 @@ impl WatchCommand {
                 }
             }
             let last_timestamp = started_timestamp_clone.load(Ordering::SeqCst);
-            if working && is_seconds_passed(120, last_timestamp) {
+            let config = get_config();
+            if working && is_seconds_passed(config.watcher_timeout_sec, last_timestamp) {
                 start_clone.store(false, Ordering::SeqCst);
                 working = false;
                 println!("Paused (inactive)..");

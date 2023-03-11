@@ -1,0 +1,3 @@
+# The amount of time (in seconds) that a user can be inactive before their time tracking is paused until they become
+# active again. Adjust this value as needed based on user behavior and project requirements.
+watcher_timeout_sec = 60
