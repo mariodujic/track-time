@@ -1,4 +1,4 @@
-use clap::{Parser};
+use clap::Parser;
 
 use crate::commands::{Opts, SubCommand};
 use crate::database::{create_record_table, get_connection};
@@ -19,12 +19,11 @@ fn main() {
         SubCommand::Stop(command) => {
             command.invoke(&connection)
         }
-        SubCommand::Show(param) => {
-            param.invoke(&connection);
+        SubCommand::Show(command) => {
+            command.invoke(&connection);
         }
         SubCommand::Watch(command) => {
-            println!("Project: {}", command.project);
-            println!("Path: {}", command.path);
+            command.invoke(&connection);
         }
         SubCommand::Projects(command) => {
             command.invoke(&connection);

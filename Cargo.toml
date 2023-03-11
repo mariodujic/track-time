@@ -8,3 +8,5 @@ chrono = "0.4.23"
 clap = { version = "4.1.8", features = ["cargo", "derive"] }
 rusqlite = "0.28.0"
 uuid = { version = "1.3.0", features = ["v4"] }
+notify = "5.1.0"
+ctrlc = "3.2.5"

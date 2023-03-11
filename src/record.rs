@@ -1,5 +1,7 @@
 use uuid::Uuid;
 
+use crate::utils::now_timestamp_ms;
+
 #[derive(Debug)]
 pub struct Record {
     pub id: String,
@@ -14,7 +16,7 @@ impl Record {
             id: Uuid::new_v4().to_string(),
             project,
             is_start: true,
-            time_at: chrono::offset::Utc::now().timestamp_millis(),
+            time_at: now_timestamp_ms(),
         };
     }
     pub fn stop(project: String) -> Record {
@@ -22,7 +24,7 @@ impl Record {
             id: Uuid::new_v4().to_string(),
             project,
             is_start: false,
-            time_at: chrono::offset::Utc::now().timestamp_millis(),
+            time_at: now_timestamp_ms(),
         };
     }
 }
