@@ -200,3 +200,37 @@ impl DeleteCommand {
         println!("Deleted project '{}'", self.project);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::commands::{StartCommand, StopCommand};
+    use crate::database::{delete_project, get_connection, read_project_records};
+
+    #[test]
+    fn should_start_tracking_time() {
+        let connection = get_connection();
+        let project_name = String::from("test_project");
+        delete_project(&connection, project_name.clone());
+        let command = StartCommand { project: project_name.clone() };
+        command.invoke(&connection);
+        let records = read_project_records(&connection, project_name.clone()).unwrap();
+        assert_eq!(records.len(), 1);
+        let entry = records.get(0).unwrap();
+        assert_eq!(entry.project, project_name);
+        assert_eq!(entry.is_start, true);
+    }
+
+    #[test]
+    fn should_stop_tracking_time() {
+        let connection = get_connection();
+        let project_name = String::from("test_project");
+        delete_project(&connection, project_name.clone());
+        let command = StopCommand { project: project_name.clone() };
+        command.invoke(&connection);
+        let records = read_project_records(&connection, project_name.clone()).unwrap();
+        assert_eq!(records.len(), 1);
+        let entry = records.get(0).unwrap();
+        assert_eq!(entry.project, project_name);
+        assert_eq!(entry.is_start, false);
+    }
+}
