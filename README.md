@@ -38,7 +38,7 @@ Preview:
 <img src="preview/watcher.gif"  width="100%"/>
 </div>
 
-This functionality is based on [notify](https://crates.io/crates/notify) crate.
+This functionality is based on filesystem notification crate [notify](https://crates.io/crates/notify).
 
 <h2 align="left">Report</h2>
 You can preview your projects and see total time for a single project.
@@ -49,7 +49,7 @@ To preview all projects:
 ```
 cargo run projects
 ```
-
+<br>
 To preview tracked time of a project:
 
 ```
