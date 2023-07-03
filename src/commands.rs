@@ -9,7 +9,7 @@ use notify::{RecursiveMode, Watcher};
 use rusqlite::Connection;
 
 use crate::config::get_config;
-use crate::database::{delete_project, insert_record, read_project_records, read_projects};
+use crate::database::{delete_project, insert_record, read_project_records, read_projects, rename_project};
 use crate::tracking_entry::TrackingEntry;
 use crate::utils::{date_time_to_display_date, is_seconds_passed, now_timestamp_ms, timestamp_to_date_time_utc};
 
@@ -33,6 +33,8 @@ pub enum Command {
     Projects(ProjectsCommand),
     #[command(about = "Deletes project.")]
     DeleteProject(DeleteCommand),
+    #[command(about = "Rename project.")]
+    RenameProject(RenameCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -198,6 +200,21 @@ impl DeleteCommand {
     pub fn invoke(self, connection: &Connection) {
         delete_project(connection, self.project.clone());
         println!("Deleted project '{}'", self.project);
+    }
+}
+
+#[derive(Parser, Debug)]
+pub struct RenameCommand {
+    #[arg(long)]
+    pub project: String,
+    #[arg(long)]
+    pub new_project: String
+}
+
+impl RenameCommand {
+    pub fn invoke(self, connection: &Connection) {
+        rename_project(connection, self.project.clone(), self.new_project.clone());
+        println!("Renamed project '{}' to '{}'", self.project, self.new_project);
     }
 }
 

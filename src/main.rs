@@ -32,5 +32,8 @@ fn main() {
         Command::DeleteProject(command) => {
             command.invoke(&connection)
         }
+        Command::RenameProject(command) => {
+            command.invoke(&connection)
+        }
     }
 }

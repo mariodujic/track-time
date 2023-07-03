@@ -29,6 +29,13 @@ pub fn delete_project(connection: &Connection, project: String) {
     ).unwrap();
 }
 
+pub fn rename_project(connection: &Connection, project: String, new_project: String) {
+    connection.execute(
+        "UPDATE records SET project = ? WHERE project = ?",
+        [new_project, project],
+    ).unwrap();
+}
+
 pub fn read_project_records(connection: &Connection, project: String) -> Result<Vec<TrackingEntry>, Error> {
     let mut statement = connection.prepare("SELECT id, project, is_start, time_at FROM records WHERE project = :project ORDER BY time_at ASC")?;
     let result = statement.query_map(&[(":project", &project)], |row| { row_to_record(row) })?;
