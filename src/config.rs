@@ -1,5 +1,5 @@
-use config_file::FromConfigFile;
 use serde::Deserialize;
+use toml;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -8,5 +8,6 @@ pub struct Config {
 }
 
 pub fn get_config() -> Config {
-    Config::from_config_file("Config.toml").unwrap()
+    let config_str = include_str!("../Config.toml");
+    toml::from_str(config_str).unwrap()
 }
