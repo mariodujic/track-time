@@ -4,18 +4,24 @@
 This is a command-line time-tracking tool that allows you to manually or automatically time-track your activity.
 </p>
 
+<h2 align="left">Install</h2>
+
+```
+cargo install track-time
+```
+
 <h2 align="left">Manual tracking</h2>
 In order to manually start time-tracking:
 
 ```
-cargo run start --project <project_name>
+track-time start --project <project_name>
 ```
 
 <br>
 To stop time-tracking:
 
 ```
-cargo run stop --project <project_name>
+track-time stop --project <project_name>
 ```
 
 Preview:
@@ -27,7 +33,7 @@ Preview:
 In order to automatically time-track activity for a path:
 
 ```
-cargo run watch --project <project_name> --path <folder_path>
+track-time watch --project <project_name> --path <folder_path>
 ```
 
 Watcher flags user as inactive after a timeout period. Timeout time unit is in seconds, and the amount can be changed in
@@ -47,13 +53,13 @@ You can preview your projects and see total time for a single project.
 To preview all projects:
 
 ```
-cargo run projects
+track-time projects
 ```
 <br>
 To preview tracked time of a project:
 
 ```
-cargo run show --project <project_name>
+track-time show --project <project_name>
 ```
 
 Preview:
