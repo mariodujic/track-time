@@ -1,12 +1,22 @@
+use std::env;
 use std::fs::create_dir_all;
+use std::path::PathBuf;
 
 use rusqlite::{Connection, Error, Row};
 
 use crate::tracking_entry::TrackingEntry;
 
 pub fn get_connection() -> Connection {
-    create_dir_all("database").unwrap();
-    Connection::open("database/track_time.db").unwrap()
+    let root_dir = if cfg!(target_os = "windows") {
+        env::var("USERPROFILE")
+    } else {
+        env::var("HOME")
+    };
+    let mut path = PathBuf::from(root_dir.unwrap());
+    path.push(".track-time");
+    create_dir_all(path.clone()).unwrap();
+    path.push("track_time.db");
+    Connection::open(path.clone()).unwrap()
 }
 
 pub fn create_record_table(connection: &Connection) {
